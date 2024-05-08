@@ -1,0 +1,45 @@
+[package]
+name = "files"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = ["host"]
+host = [
+    "dep:tokio", 
+    "dep:tower", 
+    "dep:tower-layer", 
+    "dep:axum", 
+    "dep:axum-extra", 
+    "dep:log", 
+    "dep:env_logger", 
+    "dep:futures", 
+    "dep:serde", 
+    "dep:serde_json",
+    "dep:sqlx",
+    "dep:deadpool",
+    "dep:rand",
+    "dep:auth",
+    "dep:prost",
+    "dep:bytes"
+]
+client = []
+
+[dependencies]
+tokio = { version = "1.36.0", features = ["full"], optional = true }
+tower = { version = "0.4.13", optional = true }
+tower-layer = { version = "0.3.2", optional = true }
+axum = { version = "0.7.4", features = ["multipart"], optional = true }
+axum-extra = { version = "0.9.3", features = ["protobuf"], optional = true }
+bytes = { version = "*", optional = true }
+log = { version = "0.4.20", optional = true }
+env_logger = { version = "0.11.3", optional = true }
+futures = { version = "0.3.30", optional = true }
+serde = { version = "1.0.197", features = ["derive"], optional = true }
+serde_json = { version = "1.0.114", optional = true }
+prost = { version = "0.12.4", optional = true }
+sqlx = { version = "0.7.3", features = [ "runtime-tokio", "tls-native-tls", "postgres" ], optional = true }
+deadpool = { version = "0.12.0", features = ["managed"], optional = true }
+rand = { version = "0.8.5", optional = true }
+file-format = { git = "https://github.com/chasb96/file-format.git" }
+auth = { git = "https://github.com/chasb96/untitled_auth", default-features = false, features = ["client"], optional = true }

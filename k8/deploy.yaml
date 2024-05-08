@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: files
+spec:
+  replicas: 2
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: files
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: files
+    spec:
+      containers:
+      - name: files
+        image: public.ecr.aws/l4v6k6q7/77beded4b02ff2bbc55625b157652fb0_files:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: FILES_DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: files-database-connection-string
+              key: database_url
+        - name: FILES_DRIVER
+          value: disk
+        - name: FILES_PATH
+          value: /storage
+        volumeMounts:
+        - name: storage
+          mountPath: /storage
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: storage-volume-claim
