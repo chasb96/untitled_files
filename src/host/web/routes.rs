@@ -2,8 +2,10 @@ use axum::{extract::{Multipart, Path, Request}, http::{header::{CONTENT_DISPOSIT
 use bytes::Bytes;
 use file_format::FileFormat;
 use rand::distributions::{Alphanumeric, DistString};
-use crate::host::{axum::extractors::authenticate::AuthenticateExtractor, {axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, web::response::MetadataResponse}, util::or_status_code::{OrBadRequest, OrInternalServerError, OrNotFound}};
+
 use super::{request::ListMetadataRequest, response::{CreateFileResponse, ListMetadataResponse}};
+
+use crate::host::{axum::extractors::authenticate::AuthenticateExtractor, {axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, web::response::MetadataResponse}, util::or_status_code::{OrBadRequest, OrInternalServerError, OrNotFound}};
 use crate::host::persist::Persistor;
 use crate::host::repository::metadata::MetadataRepository;
 
@@ -51,6 +53,7 @@ pub async fn create_file<'a>(
     const UPLOAD_CAP: usize = 16;
     const FILE_FORMAT_WHITELIST: &[FileFormat] = &[
         FileFormat::StereolithographyAscii,
+        FileFormat::StereolithographyBinary,
         FileFormat::PortableNetworkGraphics,
         FileFormat::PlainText,
         FileFormat::PortableDocumentFormat,

@@ -15,5 +15,6 @@ pub fn router() -> Router {
     Router::new()
         .route("/health", get(health::health))
         .register_files_routes()
+        .register_files_layers()
         .layer(LogLayer::new())
 }
