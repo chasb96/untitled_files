@@ -1,8 +1,10 @@
+use std::collections::HashMap;
+
 use serde::Serialize;
 
 #[derive(Serialize)]
 pub struct CreateFileResponse {
-    pub ids: Vec<String>,
+    pub ids: HashMap<String, String>,
 }
 
 #[derive(Serialize)]

@@ -1,3 +1,5 @@
+use std::{collections::HashMap, io::Cursor, path::PathBuf};
+
 use axum::{extract::{Multipart, Path, Request}, http::{header::{CONTENT_DISPOSITION, CONTENT_TYPE}, HeaderMap, HeaderValue, StatusCode}, response::IntoResponse, Json, RequestExt};
 use bytes::Bytes;
 use file_format::FileFormat;
@@ -60,16 +62,27 @@ pub async fn create_file<'a>(
         FileFormat::JointPhotographicExpertsGroup,
     ];
 
-    let mut ids = Vec::new();
+    let mut ids = HashMap::new();
 
     while let Some(field) = request.next_field().await.or_internal_server_error()? {
         let name = field.name().or_bad_request()?.to_string();
         let bytes = field.bytes().await.or_bad_request()?;
 
-        let file_format = FileFormat::from_bytes(&bytes);
+        let mut file_format = FileFormat::from_bytes(&bytes);
 
         if !FILE_FORMAT_WHITELIST.contains(&file_format) {
-            return Err(StatusCode::BAD_REQUEST);
+            // STLB does not have reliable magic bytes, try reading the file if
+            //  it is stated to be an STLB file
+            let extension = PathBuf::from(&name)
+                .extension()
+                .or_bad_request()?
+                .to_ascii_uppercase();
+
+            if extension == "STL" && stl_io::read_stl(&mut Cursor::new(&bytes)).is_ok() {
+                file_format = FileFormat::StereolithographyBinary;
+            } else {
+                return Err(StatusCode::BAD_REQUEST);
+            }
         }
 
         let id = Alphanumeric.sample_string(&mut rand::thread_rng(), 16);
@@ -85,7 +98,7 @@ pub async fn create_file<'a>(
             .await
             .or_internal_server_error()?;
 
-        ids.push(id.to_string());
+        ids.insert(name, id.to_string());
 
         if ids.len() >= UPLOAD_CAP {
             break;
