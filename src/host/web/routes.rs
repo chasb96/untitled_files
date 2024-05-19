@@ -65,9 +65,16 @@ pub async fn create_file<'a>(
     let mut ids = HashMap::new();
 
     while let Some(field) = request.next_field().await.or_internal_server_error()? {
-        let name = field.name().or_bad_request()?.to_string();
+        let name = field.name()
+            .map(|name| PathBuf::from(name))
+            .or_bad_request()?
+            .file_name()
+            .and_then(|file_name| file_name.to_str())
+            .or_bad_request()?
+            .to_string();
+        
         let bytes = field.bytes().await.or_bad_request()?;
-
+    
         let mut file_format = FileFormat::from_bytes(&bytes);
 
         if !FILE_FORMAT_WHITELIST.contains(&file_format) {
