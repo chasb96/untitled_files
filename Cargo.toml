@@ -23,7 +23,11 @@ host = [
     "dep:prost",
     "dep:bytes",
     "dep:flate2",
-    "dep:stl_io"
+    "dep:stl_io",
+    "dep:json_or_protobuf",
+    "dep:or_status_code",
+    "dep:log_unwrap",
+    "dep:log_layer"
 ]
 client = []
 
@@ -47,3 +51,7 @@ file-format = { git = "https://github.com/chasb96/file-format.git" }
 auth = { git = "https://github.com/chasb96/untitled_auth", default-features = false, features = ["client"], optional = true }
 flate2 = { version = "1.0.30", optional = true }
 stl_io = { version = "0.7.0", optional = true }
+json_or_protobuf = { git = "https://github.com/chasb96/json_or_protobuf", optional = true }
+or_status_code = { git = "https://github.com/chasb96/or_status_code", optional = true }
+log_unwrap = { git = "https://github.com/chasb96/log_unwrap", optional = true }
+log_layer = { git = "https://github.com/chasb96/log_layer", optional = true }
