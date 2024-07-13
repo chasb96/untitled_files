@@ -1,5 +1,5 @@
 use std::{collections::HashMap, io::Cursor, path::PathBuf};
-use auth::client::axum::extractors::Authenticate;
+use auth_client::axum::extractors::{Authenticate, ClaimsUser};
 use axum::{extract::{Multipart, Path, Request}, http::{header::{CONTENT_DISPOSITION, CONTENT_TYPE}, HeaderMap, HeaderValue, StatusCode}, response::IntoResponse, Json, RequestExt};
 use bytes::Bytes;
 use file_format::FileFormat;
@@ -13,7 +13,7 @@ use crate::persist::Persistor;
 use crate::repository::metadata::MetadataRepository;
 
 pub async fn post_files<'a>(
-    authenticate_extractor: Authenticate,
+    authenticate_extractor: Authenticate<ClaimsUser>,
     persistor: PersistorExtractor<'a>,
     metadata_repository: MetadataRepositoryExtractor,
     request: Request
@@ -48,7 +48,7 @@ pub async fn post_files<'a>(
 }
 
 pub async fn create_file<'a>(
-    Authenticate(user): Authenticate,
+    Authenticate(user): Authenticate<ClaimsUser>,
     persistor: PersistorExtractor<'a>,
     metadata_repository: MetadataRepositoryExtractor,
     mut request: Multipart
@@ -102,7 +102,7 @@ pub async fn create_file<'a>(
             .or_internal_server_error()?;
 
         metadata_repository
-            .create(&id, &key, user.id, &name, file_format.media_type())
+            .create(&id, &key, &user.id, &name, file_format.media_type())
             .await
             .or_internal_server_error()?;
 
@@ -142,7 +142,9 @@ pub async fn list_metadata(
                 .map(|metadata| MetadataResponse {
                     id: metadata.id.to_owned(),
                     name: metadata.name.to_owned(),
-                    user_id: metadata.user_id,
+                    user_id: metadata.user_id
+                        .to_string()
+                        .clone(),
                 })
                 .collect()
         }

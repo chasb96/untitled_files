@@ -2,9 +2,9 @@ use std::{error::Error, fmt::Display, sync::OnceLock};
 use deadpool::managed::{Pool, BuildError};
 use log_unwrap::LogUnwrap;
 use crate::configuration::Configuration;
-use super::deadpool::ConnectionManager;
+use super::deadpool::PostgresConnectionManager;
 
-static CONNECTION_POOL: OnceLock<Pool<ConnectionManager>> = OnceLock::new();
+static CONNECTION_POOL: OnceLock<Pool<PostgresConnectionManager>> = OnceLock::new();
 
 #[derive(Debug)]
 pub enum InitializeConnectionPoolError {
@@ -36,7 +36,7 @@ impl From<BuildError> for InitializeConnectionPoolError {
 }
 
 pub struct PostgresDatabase {
-    pub connection_pool: &'static Pool<ConnectionManager>,
+    pub connection_pool: &'static Pool<PostgresConnectionManager>,
 }
 
 impl Default for PostgresDatabase {
@@ -46,7 +46,7 @@ impl Default for PostgresDatabase {
                 .get_or_init(|| {
                     let configuration = Configuration::configured();
 
-                    let manager = ConnectionManager {
+                    let manager = PostgresConnectionManager {
                         connection_string: configuration.database_url.to_string(),
                     };
 

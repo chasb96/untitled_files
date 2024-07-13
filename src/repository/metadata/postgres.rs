@@ -1,10 +1,10 @@
 use sqlx::Row;
 use sqlx::postgres::PgRow;
-use crate::repository::postgres::PostgresDatabase;
-use super::{error::{GetByIdError, ListError}, Metadata, MetadataRepository};
+use crate::repository::{error::QueryError, postgres::PostgresDatabase};
+use super::{Metadata, MetadataRepository};
 
 impl MetadataRepository for PostgresDatabase {
-    async fn create(&self, id: &str, key: &str, user_id: i32, name: &str, mime: &str) -> Result<String, super::error::CreateError> {
+    async fn create(&self, id: &str, key: &str, user_id: &str, name: &str, mime: &str) -> Result<String, QueryError> {
         const INSERT_QUERY: &'static str = r#"
             INSERT INTO metadata (id, key, user_id, name, mime)
             VALUES ($1, $2, $3, $4, $5)
@@ -27,7 +27,7 @@ impl MetadataRepository for PostgresDatabase {
             .map_err(Into::into)
     }
     
-    async fn list(&self, ids: Vec<String>) -> Result<Vec<Metadata>, ListError> {
+    async fn list(&self, ids: Vec<String>) -> Result<Vec<Metadata>, QueryError> {
         const LIST_QUERY: &'static str = r#"
             SELECT
                 id,
@@ -56,7 +56,7 @@ impl MetadataRepository for PostgresDatabase {
             .map_err(Into::into)
     }
 
-    async fn get_by_id(&self, id: &str) -> Result<Option<Metadata>, GetByIdError> {
+    async fn get_by_id(&self, id: &str) -> Result<Option<Metadata>, QueryError> {
         const GET_BY_ID_QUERY: &'static str = r#"
             SELECT
                 id,
