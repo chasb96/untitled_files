@@ -8,9 +8,9 @@ use rand::distributions::{Alphanumeric, DistString};
 
 use super::{request::ListMetadataRequest, response::{CreateFileResponse, ListMetadataResponse}};
 
-use crate::host::{{axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, web::response::MetadataResponse}};
-use crate::host::persist::Persistor;
-use crate::host::repository::metadata::MetadataRepository;
+use crate::{{axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, web::response::MetadataResponse}};
+use crate::persist::Persistor;
+use crate::repository::metadata::MetadataRepository;
 
 pub async fn post_files<'a>(
     authenticate_extractor: Authenticate,

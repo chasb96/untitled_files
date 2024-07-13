@@ -1,7 +1,7 @@
 use std::{error::Error, fmt::Display, sync::OnceLock};
 use deadpool::managed::{Pool, BuildError};
 use log_unwrap::LogUnwrap;
-use crate::host::configuration::Configuration;
+use crate::configuration::Configuration;
 use super::deadpool::ConnectionManager;
 
 static CONNECTION_POOL: OnceLock<Pool<ConnectionManager>> = OnceLock::new();

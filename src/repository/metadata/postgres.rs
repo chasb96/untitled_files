@@ -1,6 +1,6 @@
 use sqlx::Row;
 use sqlx::postgres::PgRow;
-use crate::host::repository::postgres::PostgresDatabase;
+use crate::repository::postgres::PostgresDatabase;
 use super::{error::{GetByIdError, ListError}, Metadata, MetadataRepository};
 
 impl MetadataRepository for PostgresDatabase {

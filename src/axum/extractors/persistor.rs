@@ -1,29 +1,30 @@
 use std::ops::Deref;
+
 use axum::{async_trait, extract::FromRequestParts, http::{request::Parts, StatusCode}};
 
-use crate::host::repository::metadata::MetadataRepositoryOption;
+use crate::persist::PersistorOption;
 
-pub struct MetadataRepositoryExtractor(MetadataRepositoryOption);
+pub struct PersistorExtractor<'a>(PersistorOption<'a>);
 
-impl Deref for MetadataRepositoryExtractor {
-    type Target = MetadataRepositoryOption;
+impl<'a> Deref for PersistorExtractor<'a> {
+    type Target = PersistorOption<'a>;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl Default for MetadataRepositoryExtractor {
+impl<'a> Default for PersistorExtractor<'a> {
     fn default() -> Self {
         Self(Default::default())
     }
 }
 
 #[async_trait]
-impl<T> FromRequestParts<T> for MetadataRepositoryExtractor {
+impl<'d, T> FromRequestParts<T> for PersistorExtractor<'d> {
     type Rejection = StatusCode;
 
     async fn from_request_parts<'a, 'b>(_: &'a mut Parts, _: &'b T) -> Result<Self, Self::Rejection> {
-        Ok(MetadataRepositoryExtractor::default())
+        Ok(PersistorExtractor::default())
     }
 }
