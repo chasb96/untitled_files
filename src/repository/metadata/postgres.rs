@@ -1,10 +1,10 @@
 use sqlx::Row;
 use sqlx::postgres::PgRow;
 use crate::repository::{error::QueryError, postgres::PostgresDatabase};
-use super::{Metadata, MetadataRepository};
+use super::{Metadata, MetadataRepository, NewMetadata};
 
 impl MetadataRepository for PostgresDatabase {
-    async fn create(&self, id: &str, key: &str, user_id: &str, name: &str, mime: &str) -> Result<String, QueryError> {
+    async fn create<'a>(&self, metadata: NewMetadata<'a>) -> Result<String, QueryError> {
         const INSERT_QUERY: &'static str = r#"
             INSERT INTO metadata (id, key, user_id, name, mime)
             VALUES ($1, $2, $3, $4, $5)
@@ -16,11 +16,11 @@ impl MetadataRepository for PostgresDatabase {
             .await?;
 
         sqlx::query(INSERT_QUERY)
-            .bind(id)
-            .bind(key)
-            .bind(user_id)
-            .bind(name)
-            .bind(mime)
+            .bind(metadata.id)
+            .bind(metadata.key)
+            .bind(metadata.user_id)
+            .bind(metadata.name)
+            .bind(metadata.mime)
             .map(|row: PgRow| row.get("id"))
             .fetch_one(conn.as_mut())
             .await

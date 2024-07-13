@@ -3,7 +3,7 @@ use redis::AsyncCommands;
 
 use crate::repository::{error::QueryError, redis::RedisCache};
 
-use super::{Metadata, MetadataRepository};
+use super::{Metadata, MetadataRepository, NewMetadata};
 
 pub struct MetadataCachingRepository<T> {
     redis: RedisCache,
@@ -14,8 +14,8 @@ impl<T> MetadataRepository for MetadataCachingRepository<T>
 where 
     T: MetadataRepository,
 {
-    async fn create(&self, id: &str, key: &str, user_id: &str, name: &str, mime: &str) -> Result<String, QueryError> {
-        self.repository.create(id, key, user_id, name, mime).await
+    async fn create<'a>(&self, metadata: NewMetadata<'a>) -> Result<String, QueryError> {
+        self.repository.create(metadata).await
     }
 
     async fn list(&self, keys: Vec<String>) -> Result<Vec<Metadata>, QueryError> {
@@ -43,5 +43,17 @@ where
         }
 
         Ok(None)
+    }
+}
+
+impl<T> Default for MetadataCachingRepository<T>
+where 
+    T: Default
+{
+    fn default() -> Self {
+        Self {
+            redis: RedisCache::default(),
+            repository: T::default()
+        }
     }
 }

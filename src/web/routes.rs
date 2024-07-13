@@ -8,13 +8,13 @@ use rand::distributions::{Alphanumeric, DistString};
 
 use super::{request::ListMetadataRequest, response::{CreateFileResponse, ListMetadataResponse}};
 
-use crate::{{axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, web::response::MetadataResponse}};
+use crate::{axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor}, repository::metadata::NewMetadata, web::response::MetadataResponse};
 use crate::persist::Persistor;
 use crate::repository::metadata::MetadataRepository;
 
-pub async fn post_files<'a>(
+pub async fn post_files(
     authenticate_extractor: Authenticate<ClaimsUser>,
-    persistor: PersistorExtractor<'a>,
+    persistor: PersistorExtractor,
     metadata_repository: MetadataRepositoryExtractor,
     request: Request
 ) -> impl IntoResponse {
@@ -47,9 +47,9 @@ pub async fn post_files<'a>(
     }
 }
 
-pub async fn create_file<'a>(
+pub async fn create_file(
     Authenticate(user): Authenticate<ClaimsUser>,
-    persistor: PersistorExtractor<'a>,
+    persistor: PersistorExtractor,
     metadata_repository: MetadataRepositoryExtractor,
     mut request: Multipart
 ) -> Result<Json<CreateFileResponse>, StatusCode> {
@@ -101,8 +101,16 @@ pub async fn create_file<'a>(
             .await
             .or_internal_server_error()?;
 
+        let metadata = NewMetadata {
+            id: &id,
+            key: &key,
+            user_id: &user.id,
+            name: &name,
+            mime: file_format.media_type(),
+        };
+
         metadata_repository
-            .create(&id, &key, &user.id, &name, file_format.media_type())
+            .create(metadata)
             .await
             .or_internal_server_error()?;
 
@@ -151,8 +159,8 @@ pub async fn list_metadata(
     ))
 }
 
-pub async fn get_by_id<'a>(
-    persistor: PersistorExtractor<'a>,
+pub async fn get_by_id(
+    persistor: PersistorExtractor,
     metadata_repository: MetadataRepositoryExtractor,
     Path(id): Path<String>
 ) -> Result<(HeaderMap, Bytes), StatusCode> {

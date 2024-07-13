@@ -1,0 +1,45 @@
+template:
+  metadata:
+    labels:
+      app: files-postgres
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 0
+    selector:
+      matchLabels:
+        app: files-postgres
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: files-postgres
+      spec:
+        containers:
+        - name: files-postgres
+          image: postgres:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+          - containerPort: 5432
+          env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: postgres-credentials
+                key: password
+          - name: PGDATA
+            value: /pgdata
+          - name: POSTGRES_DB
+            value: files
+          volumeMounts:
+          - name: postgres-storage
+            mountPath: /pgdata
+        volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: files-postgres-volume-claim

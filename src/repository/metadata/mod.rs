@@ -2,9 +2,18 @@ mod postgres;
 mod redis;
 
 use prost::Message;
+use redis::MetadataCachingRepository;
 use sqlx::Row;
 use sqlx::postgres::PgRow;
 use super::{error::QueryError, postgres::PostgresDatabase};
+
+pub struct NewMetadata<'a> {
+    pub id: &'a str,
+    pub key: &'a str,
+    pub user_id: &'a str,
+    pub name: &'a str,
+    pub mime: &'a str,
+}
 
 #[derive(Message)]
 pub struct Metadata {
@@ -33,39 +42,44 @@ impl From<PgRow> for Metadata {
 }
 
 pub trait MetadataRepository {
-    async fn create(&self, id: &str, key: &str, user_id: &str, name: &str, mime: &str) -> Result<String, QueryError>;
+    async fn create<'a>(&self, metadata: NewMetadata<'a>) -> Result<String, QueryError>;
 
     async fn list(&self, keys: Vec<String>) -> Result<Vec<Metadata>, QueryError>;
 
     async fn get_by_id(&self, id: &str) -> Result<Option<Metadata>, QueryError>;
 }
 
+#[allow(dead_code)]
 pub enum MetadataRepositoryOption {
-    Postgres(PostgresDatabase)
+    Postgres(PostgresDatabase),
+    CachedPostgres(MetadataCachingRepository<PostgresDatabase>),
 }
 
 impl MetadataRepository for MetadataRepositoryOption {
-    async fn create(&self, id: &str, key: &str, user_id: &str, name: &str, mime: &str) -> Result<String, QueryError> {
+    async fn create<'a>(&self, metadata: NewMetadata<'a>) -> Result<String, QueryError> {
         match self {
-            Self::Postgres(pg) => pg.create(id, key, user_id, name, mime).await
+            Self::Postgres(pg) => pg.create(metadata).await,
+            Self::CachedPostgres(cached_pg) => cached_pg.create(metadata).await,
         }
     }
     
     async fn list(&self, keys: Vec<String>) -> Result<Vec<Metadata>, QueryError> {
         match self {
-            Self::Postgres(pg) => pg.list(keys).await
+            Self::Postgres(pg) => pg.list(keys).await,
+            Self::CachedPostgres(cached_pg) => cached_pg.list(keys).await,
         }
     }
     
     async fn get_by_id(&self, id: &str) -> Result<Option<Metadata>, QueryError> {
         match self {
-            Self::Postgres(pg) => pg.get_by_id(id).await
+            Self::Postgres(pg) => pg.get_by_id(id).await,
+            Self::CachedPostgres(cached_pg) => cached_pg.get_by_id(id).await,
         }
     }
 }
 
 impl Default for MetadataRepositoryOption {
     fn default() -> Self {
-        Self::Postgres(PostgresDatabase::default())
+        Self::CachedPostgres(Default::default())
     }
 }

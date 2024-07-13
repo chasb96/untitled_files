@@ -4,24 +4,24 @@ use axum::{async_trait, extract::FromRequestParts, http::{request::Parts, Status
 
 use crate::persist::PersistorOption;
 
-pub struct PersistorExtractor<'a>(PersistorOption<'a>);
+pub struct PersistorExtractor(PersistorOption);
 
-impl<'a> Deref for PersistorExtractor<'a> {
-    type Target = PersistorOption<'a>;
+impl Deref for PersistorExtractor {
+    type Target = PersistorOption;
 
     fn deref(&self) -> &Self::Target {
         &self.0
     }
 }
 
-impl<'a> Default for PersistorExtractor<'a> {
+impl Default for PersistorExtractor {
     fn default() -> Self {
         Self(Default::default())
     }
 }
 
 #[async_trait]
-impl<'d, T> FromRequestParts<T> for PersistorExtractor<'d> {
+impl<T> FromRequestParts<T> for PersistorExtractor {
     type Rejection = StatusCode;
 
     async fn from_request_parts<'a, 'b>(_: &'a mut Parts, _: &'b T) -> Result<Self, Self::Rejection> {
