@@ -1,0 +1,2 @@
+ALTER TABLE metadata
+DROP COLUMN size;

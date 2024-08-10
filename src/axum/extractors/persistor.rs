@@ -1,10 +1,12 @@
-use std::ops::Deref;
+use std::{ops::Deref, sync::OnceLock};
 
 use axum::{async_trait, extract::FromRequestParts, http::{request::Parts, StatusCode}};
 
 use crate::persist::PersistorOption;
 
-pub struct PersistorExtractor(PersistorOption);
+static DRIVE: OnceLock<PersistorOption> = OnceLock::new();
+
+pub struct PersistorExtractor(&'static PersistorOption);
 
 impl Deref for PersistorExtractor {
     type Target = PersistorOption;
@@ -16,7 +18,7 @@ impl Deref for PersistorExtractor {
 
 impl Default for PersistorExtractor {
     fn default() -> Self {
-        Self(Default::default())
+        Self(DRIVE.get_or_init(PersistorOption::default))
     }
 }
 

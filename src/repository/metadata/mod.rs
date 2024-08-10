@@ -13,6 +13,7 @@ pub struct NewMetadata<'a> {
     pub user_id: &'a str,
     pub name: &'a str,
     pub mime: &'a str,
+    pub size: i64,
 }
 
 #[derive(Message)]
@@ -27,6 +28,8 @@ pub struct Metadata {
     pub name: String,
     #[prost(string, tag = "5")]
     pub mime: String,
+    #[prost(int64, tag = "6")]
+    pub size: i64,
 }
 
 impl From<PgRow> for Metadata {
@@ -36,7 +39,8 @@ impl From<PgRow> for Metadata {
             key: row.get("key"),
             user_id: row.get("user_id"),
             name: row.get("name"),
-            mime: row.get("mime")
+            mime: row.get("mime"),
+            size: row.get("size"),
         }
     }
 }
@@ -80,6 +84,6 @@ impl MetadataRepository for MetadataRepositoryOption {
 
 impl Default for MetadataRepositoryOption {
     fn default() -> Self {
-        Self::CachedPostgres(Default::default())
+        Self::Postgres(Default::default())
     }
 }

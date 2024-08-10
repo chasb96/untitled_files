@@ -1,45 +1,45 @@
-template:
-  metadata:
-    labels:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: files-postgres
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
       app: files-postgres
-  spec:
-    replicas: 1
-    revisionHistoryLimit: 0
-    selector:
-      matchLabels:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
         app: files-postgres
-    strategy:
-      type: Recreate
-    template:
-      metadata:
-        labels:
-          app: files-postgres
-      spec:
-        containers:
-        - name: files-postgres
-          image: postgres:latest
-          imagePullPolicy: IfNotPresent
-          ports:
-          - containerPort: 5432
-          env:
-          - name: POSTGRES_USER
-            valueFrom:
-              secretKeyRef:
-                name: postgres-credentials
-                key: username
-          - name: POSTGRES_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: postgres-credentials
-                key: password
-          - name: PGDATA
-            value: /pgdata
-          - name: POSTGRES_DB
-            value: files
-          volumeMounts:
-          - name: postgres-storage
-            mountPath: /pgdata
-        volumes:
+    spec:
+      containers:
+      - name: files-postgres
+        image: postgres:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: files-postgres-credentials
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: files-postgres-credentials
+              key: password
+        - name: PGDATA
+          value: /pgdata
+        - name: POSTGRES_DB
+          value: files
+        volumeMounts:
         - name: postgres-storage
-          persistentVolumeClaim:
-            claimName: files-postgres-volume-claim
+          mountPath: /pgdata
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: files-postgres-volume-claim

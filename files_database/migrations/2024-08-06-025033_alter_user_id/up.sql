@@ -1,0 +1,3 @@
+ALTER TABLE metadata
+ALTER user_id TYPE VARCHAR(16),
+ALTER user_id SET NOT NULL;

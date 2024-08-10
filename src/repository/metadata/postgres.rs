@@ -6,8 +6,8 @@ use super::{Metadata, MetadataRepository, NewMetadata};
 impl MetadataRepository for PostgresDatabase {
     async fn create<'a>(&self, metadata: NewMetadata<'a>) -> Result<String, QueryError> {
         const INSERT_QUERY: &'static str = r#"
-            INSERT INTO metadata (id, key, user_id, name, mime)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO metadata (id, key, user_id, name, mime, size)
+            VALUES ($1, $2, $3, $4, $5, $6)
             RETURNING id
         "#;
 
@@ -21,6 +21,7 @@ impl MetadataRepository for PostgresDatabase {
             .bind(metadata.user_id)
             .bind(metadata.name)
             .bind(metadata.mime)
+            .bind(metadata.size)
             .map(|row: PgRow| row.get("id"))
             .fetch_one(conn.as_mut())
             .await
@@ -34,7 +35,8 @@ impl MetadataRepository for PostgresDatabase {
                 key,
                 user_id,
                 name,
-                mime
+                mime,
+                size
             FROM
                 metadata
             WHERE
@@ -63,7 +65,8 @@ impl MetadataRepository for PostgresDatabase {
                 key,
                 user_id,
                 name,
-                mime
+                mime,
+                size
             FROM
                 metadata
             WHERE

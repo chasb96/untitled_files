@@ -1,4 +1,5 @@
 use ::axum::{routing::get, Router};
+use file_format::FileFormat;
 use log_layer::LogLayer;
 use routes::FilesRouter;
 
@@ -10,6 +11,15 @@ mod health;
 mod routes;
 mod persist;
 
+const FILE_FORMAT_WHITELIST: &[FileFormat] = &[
+    FileFormat::StereolithographyAscii,
+    FileFormat::StereolithographyBinary,
+    FileFormat::PortableNetworkGraphics,
+    FileFormat::PlainText,
+    FileFormat::PortableDocumentFormat,
+    FileFormat::JointPhotographicExpertsGroup,
+];
+
 pub fn router() -> Router {
     Router::new()
         .route("/health", get(health::health))
@@ -17,3 +27,4 @@ pub fn router() -> Router {
         .register_files_layers()
         .layer(LogLayer::new())
 }
+

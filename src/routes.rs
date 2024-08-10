@@ -1,5 +1,5 @@
 use axum::{extract::DefaultBodyLimit, routing::{get, post}, Router};
-use super::web::routes::{get_by_id, post_files};
+use super::web::*;
 
 pub trait FilesRouter {
     fn register_files_routes(self) -> Self;
@@ -9,7 +9,8 @@ pub trait FilesRouter {
 
 impl FilesRouter for Router {
     fn register_files_routes(self) -> Self {
-        self.route("/files", post(post_files))
+        self.route("/files", post(create_file))
+            .route("/files", get(list_metadata))
             .route("/files/:id", get(get_by_id))
     }
     
