@@ -1,0 +1,1 @@
+ALTER TABLE verification_states DROP PRIMARY KEY;

@@ -1,5 +1,4 @@
 use ::axum::{routing::get, Router};
-use file_format::FileFormat;
 use log_layer::LogLayer;
 use routes::FilesRouter;
 
@@ -10,15 +9,9 @@ mod configuration;
 mod health;
 mod routes;
 mod persist;
-
-const FILE_FORMAT_WHITELIST: &[FileFormat] = &[
-    FileFormat::StereolithographyAscii,
-    FileFormat::StereolithographyBinary,
-    FileFormat::PortableNetworkGraphics,
-    FileFormat::PlainText,
-    FileFormat::PortableDocumentFormat,
-    FileFormat::JointPhotographicExpertsGroup,
-];
+mod format_verification;
+mod file_format;
+mod stl_verification;
 
 pub fn router() -> Router {
     Router::new()

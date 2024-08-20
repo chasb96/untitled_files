@@ -1,13 +1,16 @@
-mod error;
 mod disk;
+pub mod error;
+
+use std::sync::OnceLock;
 
 use axum::body::Bytes;
 use error::DeleteError;
-use file_format::FileFormat;
 use futures::Stream;
 use tokio::io::AsyncRead;
 
 use self::{disk::DiskDrive, error::{WriteError, ReadError}};
+
+static DRIVE: OnceLock<PersistorOption> = OnceLock::new();
 
 pub trait Persistor {
     async fn write<T, S>(&self, key: &str, stream: T) -> Result<usize, WriteError<S>>
@@ -15,9 +18,7 @@ pub trait Persistor {
         T: Stream<Item = Result<Bytes, S>> + Unpin,
         WriteError<S>: From<S>;
 
-    async fn read(&self, key: String) -> Result<impl AsyncRead, ReadError>;
-
-    async fn mime(&self, key: &str) -> Result<Option<FileFormat>, ReadError>;
+    async fn read(&self, key: String) -> Result<impl AsyncRead + Unpin, ReadError>;
 
     async fn delete(&self, key: &str) -> Result<(), DeleteError>;
 }
@@ -37,15 +38,9 @@ impl Persistor for PersistorOption {
         }
     }
     
-    async fn read(&self, key: String) -> Result<impl AsyncRead, ReadError> {
+    async fn read(&self, key: String) -> Result<impl AsyncRead + Unpin, ReadError> {
         match self {
             Self::Disk(d) => d.read(key).await,
-        }
-    }
-
-    async fn mime(&self, key: &str) -> Result<Option<FileFormat>, ReadError> {
-        match self {
-            Self::Disk(d) => d.mime(key).await
         }
     }
 
@@ -59,5 +54,11 @@ impl Persistor for PersistorOption {
 impl Default for PersistorOption {
     fn default() -> Self {
         PersistorOption::Disk(Default::default())
+    }
+}
+
+impl Default for &'static PersistorOption {
+    fn default() -> Self {
+        DRIVE.get_or_init(PersistorOption::default)
     }
 }

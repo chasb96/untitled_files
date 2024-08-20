@@ -1,0 +1,1 @@
+ALTER TABLE verification_states ADD PRIMARY KEY (file_id);

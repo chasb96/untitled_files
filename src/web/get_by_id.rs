@@ -1,16 +1,14 @@
-use std::sync::OnceLock;
 
 use axum::{extract::Path, http::{header::{CONTENT_DISPOSITION, CONTENT_LENGTH, CONTENT_TYPE}, HeaderMap, HeaderValue, StatusCode}};
 use axum_extra::body::AsyncReadBody;
 use or_status_code::{OrInternalServerError, OrNotFound};
 
-use crate::{axum::extractors::metadata_repository::MetadataRepositoryExtractor, persist::PersistorOption};
+use crate::axum::extractors::{metadata_repository::MetadataRepositoryExtractor, persistor::PersistorExtractor};
 use crate::persist::Persistor;
 use crate::repository::metadata::MetadataRepository;
 
-static DRIVE: OnceLock<PersistorOption> = OnceLock::new();
-
 pub async fn get_by_id(
+    PersistorExtractor(persistor): PersistorExtractor,
     metadata_repository: MetadataRepositoryExtractor,
     Path(id): Path<String>
 ) -> Result<(HeaderMap, AsyncReadBody), StatusCode> {
@@ -20,8 +18,7 @@ pub async fn get_by_id(
         .or_internal_server_error()?
         .or_not_found()?;
 
-    let content = DRIVE
-        .get_or_init(PersistorOption::default)
+    let content = persistor
         .read(metadata.key)
         .await
         .or_internal_server_error()?;

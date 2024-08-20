@@ -12,6 +12,7 @@ impl FilesRouter for Router {
         self.route("/files", post(create_file))
             .route("/files", get(list_metadata))
             .route("/files/:id", get(get_by_id))
+            .route("/files/:id/verification", get(get_verification_by_id))
     }
     
     fn register_files_layers(self) -> Self {

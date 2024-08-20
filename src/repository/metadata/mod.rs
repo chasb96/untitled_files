@@ -1,11 +1,15 @@
 mod postgres;
 mod redis;
 
+use std::sync::OnceLock;
+
 use prost::Message;
 use redis::MetadataCachingRepository;
 use sqlx::Row;
 use sqlx::postgres::PgRow;
 use super::{error::QueryError, postgres::PostgresDatabase};
+
+static METADATA_REPOSITORY: OnceLock<MetadataRepositoryOption> = OnceLock::new();
 
 pub struct NewMetadata<'a> {
     pub id: &'a str,
@@ -85,5 +89,11 @@ impl MetadataRepository for MetadataRepositoryOption {
 impl Default for MetadataRepositoryOption {
     fn default() -> Self {
         Self::Postgres(Default::default())
+    }
+}
+
+impl Default for &'static MetadataRepositoryOption {
+    fn default() -> Self {
+        METADATA_REPOSITORY.get_or_init(Default::default)
     }
 }
