@@ -1,9 +1,9 @@
 use std::sync::OnceLock;
 use log::error;
-use async_channel::{Receiver, Sender};
+use async_channel::{Receiver, SendError, Sender};
 use tokio::{spawn, task::JoinHandle};
 
-use crate::{persist::PersistorOption, repository::verification::VerificationRepositoryOption};
+use crate::{persist::PersistorOption, reference_counting::ReferenceCountingChannelProducer, repository::verification::VerificationRepositoryOption};
 
 use super::message::Message;
 
@@ -38,10 +38,15 @@ impl FormatVerificationChannelConsumer {
         Self(spawn(async move {
             let verification_repository = VerificationRepositoryOption::default();
             let persistor = PersistorOption::default();
+            let reference_counting_channel = ReferenceCountingChannelProducer::default();
 
             loop {
                 match receiver.recv().await {
-                    Ok(message) => if let Err(e) = message.handle(&verification_repository, &persistor).await {
+                    Ok(message) => if let Err(e) = message.handle(
+                        &verification_repository, 
+                        &persistor,
+                        &reference_counting_channel,
+                    ).await {
                         error!("Error handling message: {:?}", e);
                     },
                     Err(e) => error!("Error receiving message: {:?}", e),
@@ -59,11 +64,10 @@ impl FormatVerificationChannelProducer {
         Self(sender)
     }
 
-    pub async fn send(&self, message: impl Into<Message>) -> Result<(), ()> {
+    pub async fn send(&self, message: impl Into<Message>) -> Result<(), SendError<Message>> {
         self.0
             .send(message.into())
             .await
-            .map_err(|_| ())
     }
 }
 

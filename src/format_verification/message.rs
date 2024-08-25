@@ -1,4 +1,8 @@
-use crate::{file_format::FileFormat, persist::Persistor, repository::verification::{VerificationRepository, VerificationState}};
+use crate::file_format::FileFormat;
+use crate::repository::verification::{VerificationRepository, VerificationState};
+use crate::reference_counting::ReferenceCountingChannelProducer;
+use crate::persist::Persistor;
+use crate::reference_counting::Message as ReferenceCountingMessage;
 
 use super::error::FormatVerificationError;
 
@@ -13,6 +17,7 @@ impl Message {
         self, 
         verification_repository: &impl VerificationRepository,
         persistor: &impl Persistor,
+        reference_counting_channel: &ReferenceCountingChannelProducer,
     ) -> Result<(), FormatVerificationError> {
         let mut file = persistor
             .read(self.key.clone())
@@ -35,6 +40,13 @@ impl Message {
             return Ok(verification_repository.upsert(&self.file_id, VerificationState::Rejected).await?);
         }
 
-        Ok(verification_repository.upsert(&self.file_id, VerificationState::Accepted).await?)
+        verification_repository.upsert(&self.file_id, VerificationState::Accepted).await?;
+
+        reference_counting_channel
+            .send(ReferenceCountingMessage {
+                file_id: self.file_id,
+            })
+            .await
+            .map_err(Into::into)
     }
 }

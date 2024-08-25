@@ -59,6 +59,18 @@ impl FileFormat {
             Self::PortableNetworkGraphics => "image/png",
         }
     }
+
+    pub fn extension(&self) -> &'static str {
+        match self {
+            Self::StereolithographyBinary => "stl",
+            Self::StandardForTheExchangeOfProductModelData => "step",
+            Self::JointPhotographicExpertsGroup => "jpg",
+            Self::PlainText => "txt",
+            Self::Markdown => "md",
+            Self::Blender => "blend",
+            Self::PortableNetworkGraphics => "png",
+        }
+    }
 }
 
 struct MagicBytes {

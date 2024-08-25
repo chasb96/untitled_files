@@ -1,4 +1,4 @@
-use axum::{extract::DefaultBodyLimit, routing::{get, post}, Router};
+use axum::{extract::DefaultBodyLimit, routing::{delete, get, post}, Router};
 use super::web::*;
 
 pub trait FilesRouter {
@@ -13,6 +13,8 @@ impl FilesRouter for Router {
             .route("/files", get(list_metadata))
             .route("/files/:id", get(get_by_id))
             .route("/files/:id/verification", get(get_verification_by_id))
+            .route("/reference_counts/:file_id", get(increment_reference_count))
+            .route("/reference_counts/:file_id", delete(decrement_reference_count))
     }
     
     fn register_files_layers(self) -> Self {

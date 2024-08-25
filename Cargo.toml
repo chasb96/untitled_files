@@ -28,3 +28,4 @@ log_unwrap = { git = "https://github.com/chasb96/log_unwrap" }
 log_layer = { git = "https://github.com/chasb96/log_layer" }
 redis = { version = "0.25.4", features = ["async-std-comp", "aio", "ahash", "r2d2"] }
 async-channel = "2.3.1"
+chrono = "0.4.38"

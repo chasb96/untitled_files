@@ -12,6 +12,8 @@ mod persist;
 mod format_verification;
 mod file_format;
 mod stl_verification;
+mod metadata_extraction;
+mod reference_counting;
 
 pub fn router() -> Router {
     Router::new()

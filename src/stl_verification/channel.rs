@@ -1,10 +1,10 @@
 use std::sync::OnceLock;
 
 use log::error;
-use async_channel::{Receiver, Sender};
+use async_channel::{Receiver, SendError, Sender};
 use tokio::{spawn, task::JoinHandle};
 
-use crate::repository::verification::VerificationRepositoryOption;
+use crate::{reference_counting::ReferenceCountingChannelProducer, repository::verification::VerificationRepositoryOption};
 
 use super::message::Message;
 
@@ -38,10 +38,14 @@ impl StlVerificationChannelConsumer {
     pub fn new(receiver: Receiver<Message>) -> Self {
         Self(spawn(async move {
             let verification_repository = VerificationRepositoryOption::default();
+            let reference_counting_channel = ReferenceCountingChannelProducer::default();
 
             loop {
                 match receiver.recv().await {
-                    Ok(message) => if let Err(e) = message.handle(&verification_repository).await {
+                    Ok(message) => if let Err(e) = message.handle(
+                        &verification_repository, 
+                        &reference_counting_channel
+                    ).await {
                         error!("Error handling message: {:?}", e);
                     },
                     Err(e) => error!("Error receiving message: {:?}", e),
@@ -59,11 +63,10 @@ impl StlVerificationChannelProducer {
         Self(sender)
     }
 
-    pub async fn send(&self, message: impl Into<Message>) -> Result<(), ()> {
+    pub async fn send(&self, message: impl Into<Message>) -> Result<(), SendError<Message>> {
         self.0
             .send(message.into())
             .await
-            .map_err(|_| ())
     }
 }
 
